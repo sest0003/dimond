@@ -531,78 +531,88 @@ class DiamondPacman {
             // Spara canvas-tillstånd
             this.ctx.save();
             
-            // Bestäm riktning för dynamiten (större nu)
+            // Bestäm riktning och storlek för vattenstrålen (större)
             let width, height;
-            let fuseX = centerX;
-            let fuseY = centerY;
             
             switch(bullet.direction) {
                 case 'up':
-                    width = 12;
-                    height = 18;
-                    fuseY = centerY - height/2;
+                    width = 20;
+                    height = 30;
                     break;
                 case 'down':
-                    width = 12;
-                    height = 18;
-                    fuseY = centerY + height/2;
+                    width = 20;
+                    height = 30;
                     break;
                 case 'left':
-                    width = 18;
-                    height = 12;
-                    fuseX = centerX - width/2;
+                    width = 30;
+                    height = 20;
                     break;
                 case 'right':
-                    width = 18;
-                    height = 12;
-                    fuseX = centerX + width/2;
+                    width = 30;
+                    height = 20;
                     break;
                 default:
-                    width = 14;
-                    height = 14;
+                    width = 24;
+                    height = 24;
             }
             
-            // Rita mörk kontur för bättre synlighet
-            this.ctx.strokeStyle = '#000000';
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(centerX - width/2, centerY - height/2, width, height);
-            
-            // Rita dynamit-röret (röd rektangel med mörkare röd)
-            this.ctx.fillStyle = '#B22222'; // Mörkare röd för bättre kontrast
-            this.ctx.fillRect(centerX - width/2, centerY - height/2, width, height);
-            
-            // Rita gula band runt dynamiten (mörkare guld för bättre kontrast)
-            this.ctx.fillStyle = '#FFA500'; // Orange/guld
+            // Skapa gradient för vattenstråle-effekt
+            let gradient;
             if (bullet.direction === 'up' || bullet.direction === 'down') {
-                this.ctx.fillRect(centerX - width/2, centerY - 3, width, 3);
-                this.ctx.fillRect(centerX - width/2, centerY + 2, width, 3);
+                gradient = this.ctx.createLinearGradient(
+                    centerX - width/2, centerY - height/2,
+                    centerX - width/2, centerY + height/2
+                );
             } else {
-                this.ctx.fillRect(centerX - 3, centerY - height/2, 3, height);
-                this.ctx.fillRect(centerX + 2, centerY - height/2, 3, height);
+                gradient = this.ctx.createLinearGradient(
+                    centerX - width/2, centerY - height/2,
+                    centerX + width/2, centerY - height/2
+                );
             }
             
-            // Rita stubin (brun liten rektangel)
-            this.ctx.fillStyle = '#654321'; // Mörkare brun
-            if (bullet.direction === 'up' || bullet.direction === 'down') {
-                this.ctx.fillRect(fuseX - 2, fuseY - 3, 4, 5);
-            } else {
-                this.ctx.fillRect(fuseX - 3, fuseY - 2, 5, 4);
-            }
+            // Gradient från ljusare blå till mörkare blå
+            gradient.addColorStop(0, '#87CEEB'); // Himmelblå
+            gradient.addColorStop(0.5, '#4682B4'); // Stålblå
+            gradient.addColorStop(1, '#1E90FF'); // Dodgerblå
             
-            // Rita brinnande stubin med glöd-effekt
-            this.ctx.shadowColor = '#FF4500';
-            this.ctx.shadowBlur = 8;
-            this.ctx.fillStyle = '#FF4500'; // Orange/röd
+            // Glöd-effekt för vattenstrålen
+            this.ctx.shadowColor = '#00BFFF';
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+            
+            // Rita vattenstrålen med rundade hörn
+            this.ctx.fillStyle = gradient;
             this.ctx.beginPath();
-            this.ctx.arc(fuseX, fuseY, 4, 0, 2 * Math.PI);
+            
+            // Skapa rundade rektangel för vattenstrålen
+            const radius = Math.min(width, height) / 4;
+            const x = centerX - width/2;
+            const y = centerY - height/2;
+            
+            this.ctx.moveTo(x + radius, y);
+            this.ctx.lineTo(x + width - radius, y);
+            this.ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            this.ctx.lineTo(x + width, y + height - radius);
+            this.ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            this.ctx.lineTo(x + radius, y + height);
+            this.ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            this.ctx.lineTo(x, y + radius);
+            this.ctx.quadraticCurveTo(x, y, x + radius, y);
+            this.ctx.closePath();
             this.ctx.fill();
             
-            // Inre ljusare låga
+            // Lägg till ljusare mittpunkt för djup
             this.ctx.shadowBlur = 0;
-            this.ctx.fillStyle = '#FFD700'; // Guld
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'; // Halvtransparent vit
             this.ctx.beginPath();
-            this.ctx.arc(fuseX, fuseY, 2, 0, 2 * Math.PI);
+            this.ctx.ellipse(centerX, centerY, width/3, height/3, 0, 0, 2 * Math.PI);
             this.ctx.fill();
+            
+            // Lägg till ljusare kanter för glans
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            this.ctx.lineWidth = 2;
+            this.ctx.stroke();
             
             // Återställ canvas-tillstånd
             this.ctx.restore();
