@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Pacman - Spela</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>💎 Diamond Pacman 💎</h1>
+        
+        <div class="game-info">
+            <div class="score">Poäng: <span id="score">0</span></div>
+            <div class="lives">Liv: <span id="lives">3</span></div>
+            <div class="character-display">
+                Karaktär: <span id="currentCharacter">😊</span>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            <h3>Kontroller</h3>
+            <p>Använd piltangenterna för att röra dig</p>
+            <p>Samla alla diamanter för att vinna!</p>
+            <p>Undvik spökena!</p>
+        </div>
+        
+        <div class="game-buttons">
+            <button id="pauseBtn" class="game-button">Pausa</button>
+            <button id="restartBtn" class="game-button">Starta om</button>
+            <button id="backBtn" class="game-button">Tillbaka till karaktärsval</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
