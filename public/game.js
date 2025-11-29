@@ -138,7 +138,7 @@ class DiamondPacman {
         });
         
         document.getElementById('backBtn').addEventListener('click', () => {
-            window.location.href = '/';
+            window.location.href = 'character-selection.html';
         });
     }
     

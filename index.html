@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diamond Pacman - Välj Karaktär</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="public/styles.css">
 </head>
 <body>
     <div class="container">
@@ -13,36 +13,36 @@
         
         <div class="character-grid">
             <div class="character-card" data-character="chili">
-                <img src="images/chili.png" alt="Chili" class="character-image">
+                <img src="public/images/chili.png" alt="Chili" class="character-image">
                 <h3>Chili-dynamito</h3>
                 <p>Om det sprängs här och där är den i farten</p>
             </div>
             
             <div class="character-card" data-character="ko">
-                <img src="images/ko.png" alt="Ko" class="character-image">
+                <img src="public/images/ko.png" alt="Ko" class="character-image">
                 <h3>Kim King</h3>
                 <p>En kunglig ko som befaller andra</p>
             </div>
             
             <div class="character-card" data-character="robot">
-                <img src="images/robot.png" alt="Robot" class="character-image">
+                <img src="public/images/robot.png" alt="Robot" class="character-image">
                 <h3>Zack</h3>
                 <p>Zack rullar runt och kollar läget</p>
             </div>
             
             <div class="character-card" data-character="potatis">
-                <img src="images/potatis.png" alt="Potatis" class="character-image">
+                <img src="public/images/potatis.png" alt="Potatis" class="character-image">
                 <h3>Potato-man</h3>
                 <p>Är en Ninja som kollar läget, kommer det nån så hugger den</p>
             </div>
             <div class="character-card" data-character="tårta">
-                <img src="images/tårta.png" alt="Tårta" class="character-image">
+                <img src="public/images/tårta.png" alt="Tårta" class="character-image">
                 <h3>Jimmy</h3>
                 <p>En söt tårta som irriterar andra</p>
             </div>
             
             <div class="character-card" data-character="huggtand">
-                <img src="images/huggtand.png" alt="Huggtand" class="character-image">
+                <img src="public/images/huggtand.png" alt="Huggtand" class="character-image">
                 <h3>Huggtand</h3>
                 <p>En vass karaktär som biter sig igenom</p>
             </div>
@@ -75,9 +75,10 @@
                 // Spara vald karaktär i localStorage
                 localStorage.setItem('selectedCharacter', selectedCharacter);
                 // Gå till spelet
-                window.location.href = 'game.html';
+                window.location.href = 'public/game.html';
             }
         });
     </script>
 </body>
 </html>
+
