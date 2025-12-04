@@ -49,7 +49,11 @@ class DiamondPacman {
             'robot': 'robot_transparent.png',
             'potatis': 'potatis_transparent.png',
             'tårta': 'tårta_transparent.png',
-            'huggtand': 'huggtand_transparant.png'
+            'huggtand': 'huggtand_transparant.png',
+            'pumpa': 'clean_transparent_pumpkin.png',
+            'alien': 'Alien.png',
+            'hollow': 'Hollow.png',
+            'krabban': 'krabban.png'
         };
         
         // Ladda karaktärsbilder
@@ -680,7 +684,11 @@ class DiamondPacman {
                          selectedCharacter === 'ko' ? '🐄' :
                          selectedCharacter === 'robot' ? '🤖' :
                          selectedCharacter === 'potatis' ? '🥔' :
-                         selectedCharacter === 'huggtand' ? '🦷' : '🎂';
+                         selectedCharacter === 'huggtand' ? '🦷' :
+                         selectedCharacter === 'pumpa' ? '🎃' :
+                         selectedCharacter === 'alien' ? '👽' :
+                         selectedCharacter === 'hollow' ? '💀' :
+                         selectedCharacter === 'krabban' ? '🦀' : '🎂';
             
             // Spara canvas-tillstånd
             this.ctx.save();
