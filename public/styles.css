@@ -73,12 +73,12 @@ h2 {
 .character-image {
     width: 100%;
     height: 250px;
-    border-radius: 15px;
     margin: 0 auto 15px;
     object-fit: contain;
     display: block;
     object-position: center;
 }
+.transparent-border {border: 2px solid black;}
 
 .character-card h3 {
     font-size: 1.2rem;

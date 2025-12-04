@@ -53,7 +53,9 @@ class DiamondPacman {
             'pumpa': 'clean_transparent_pumpkin.png',
             'alien': 'Alien.png',
             'hollow': 'Hollow.png',
-            'krabban': 'krabban.png'
+            'krabban': 'krabban.png',
+            'tjuven': 'Osynliga tjuven.png',
+            'anden': 'anden.png'
         };
         
         // Ladda karaktärsbilder
@@ -688,7 +690,9 @@ class DiamondPacman {
                          selectedCharacter === 'pumpa' ? '🎃' :
                          selectedCharacter === 'alien' ? '👽' :
                          selectedCharacter === 'hollow' ? '💀' :
-                         selectedCharacter === 'krabban' ? '🦀' : '🎂';
+                         selectedCharacter === 'krabban' ? '🦀' :
+                         selectedCharacter === 'tjuven' ? '🥷' :
+                         selectedCharacter === 'anden' ? '🦆' : '🎂';
             
             // Spara canvas-tillstånd
             this.ctx.save();
