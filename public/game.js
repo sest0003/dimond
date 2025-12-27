@@ -14,6 +14,7 @@ class DiamondPacman {
         // Spelvariabler
         this.score = 0;
         this.lives = 3;
+        this.level = 1;
         this.gameRunning = false;
         this.gamePaused = false;
         this.gameWon = false;
@@ -25,15 +26,25 @@ class DiamondPacman {
             y: 13,
             direction: 'right',
             nextDirection: 'right',
-            character: '😊'
+            character: '😊',
+            lastX: 8,
+            lastY: 13
         };
         
-        // Spöken
+        // Fireballs
         this.ghosts = [
             { x: 9, y: 1, direction: 'left', color: '#FF0000' },
             { x: 1, y: 9, direction: 'right', color: '#FF69B4' },
             { x: 9, y: 9, direction: 'up', color: '#00FFFF' }
         ];
+        
+        // Spawner (skapar fireballs)
+        this.spawners = [
+            { x: 5, y: 5, direction: 'right', lastSpawnTime: Date.now(), hp: 4 }
+        ];
+        
+        // Hunters (nya fiender)
+        this.hunters = [];
         
         // Projektiler
         this.bullets = [];
@@ -55,12 +66,19 @@ class DiamondPacman {
             'hollow': 'Hollow.png',
             'krabban': 'krabban.png',
             'tjuven': 'Osynliga tjuven.png',
-            'anden': 'anden.png'
+            'anden': 'anden.png',
+            'red_monster': 'red_monster.png',
+            'banana': 'banana.png',
+            'cowboy-gamer': 'cowboy-gamer.png'
         };
         
         // Ladda karaktärsbilder
         this.characterImages = {};
         this.loadCharacterImages();
+        
+        // Ladda spawner-bild
+        this.spawnerImage = null;
+        this.loadSpawnerImage();
         
         this.init();
     }
@@ -89,6 +107,19 @@ class DiamondPacman {
         return Promise.all(imagePromises);
     }
     
+    loadSpawnerImage() {
+        const img = new Image();
+        img.src = 'images/Frågetecknet.png';
+        
+        img.onload = () => {
+            this.spawnerImage = img;
+        };
+        
+        img.onerror = () => {
+            console.warn('Kunde inte ladda spawner-bild');
+        };
+    }
+    
     async init() {
         // Vänta på att bilderna laddas
         await this.loadCharacterImages();
@@ -101,6 +132,7 @@ class DiamondPacman {
         document.getElementById('currentCharacter').textContent = this.player.character;
         document.getElementById('score').textContent = this.score;
         document.getElementById('lives').textContent = this.lives;
+        document.getElementById('level').textContent = this.level;
         
         // Event listeners
         this.setupEventListeners();
@@ -259,6 +291,104 @@ class DiamondPacman {
         return maze;
     }
     
+    createMazeLevel2() {
+        // Skapa en ny labyrint för level 2
+        const maze = [];
+        
+        // Först skapa en tom labyrint
+        for (let y = 0; y < this.rows; y++) {
+            maze[y] = [];
+            for (let x = 0; x < this.cols; x++) {
+                maze[y][x] = 0; // Tom ruta
+            }
+        }
+        
+        // Lägg till väggar runt kanterna
+        for (let x = 0; x < this.cols; x++) {
+            maze[0][x] = 1; // Övre kant
+            maze[this.rows - 1][x] = 1; // Nedre kant
+        }
+        for (let y = 0; y < this.rows; y++) {
+            maze[y][0] = 1; // Vänster kant
+            maze[y][this.cols - 1] = 1; // Höger kant
+        }
+        
+        // Level 2 labyrint mönster (svårare med öppningar)
+        // Centralt område - U-formad struktur med öppningar
+        maze[6][6] = 1;
+        maze[6][7] = 1;
+      
+        maze[6][9] = 1;
+        maze[7][6] = 1;
+        // maze[7][7] och maze[7][8] är öppna (0) - öppning uppåt
+        maze[7][9] = 1;
+        maze[8][6] = 1;
+        // maze[8][7] och maze[8][8] är öppna (0) - öppning uppåt
+        maze[8][9] = 1;
+        maze[9][6] = 1;
+        maze[9][7] = 1;
+        maze[9][8] = 1;
+        maze[9][9] = 1;
+        
+        // Vänster sida - med öppningar
+        maze[2][3] = 1;
+        maze[3][3] = 1;
+        // maze[4][3] är öppen (0) - öppning
+        maze[5][3] = 1;
+        maze[3][4] = 1;
+        // maze[4][4] är öppen (0) - öppning
+        maze[3][5] = 1;
+        
+        // Höger sida - med öppningar
+        maze[2][13] = 1;
+        maze[3][13] = 1;
+        // maze[4][13] är öppen (0) - öppning
+        maze[5][13] = 1;
+        maze[3][12] = 1;
+        // maze[4][12] är öppen (0) - öppning
+        maze[3][11] = 1;
+        
+        // Övre del - med öppningar
+        maze[3][7] = 1;
+        // maze[3][8] är öppen (0) - öppning
+        maze[3][9] = 1;
+        maze[4][7] = 1;
+        // maze[4][8] är öppen (0) - öppning
+        maze[4][9] = 1;
+        
+        // Nedre del - med öppningar
+        maze[11][7] = 1;
+        // maze[11][8] är öppen (0) - öppning
+        maze[11][9] = 1;
+        // maze[10][7] är öppen (0) - öppning till centralt område (inte satt till 1)
+        // maze[10][8] är öppen (0) - öppning till centralt område (inte satt till 1)
+        maze[10][9] = 1;
+        
+        // Öppning från övre till centralt område
+        // maze[5][7] och maze[5][8] är öppna (0) - inte satt till 1
+        
+        // Ytterligare väggar - med öppningar för att koppla ihop områden
+        maze[7][3] = 1;
+        // maze[7][4] är öppen (0) - kopplar vänster till mitten
+        maze[8][3] = 1;
+        // maze[8][4] är öppen (0) - kopplar vänster till mitten
+        maze[7][13] = 1;
+        // maze[7][12] är öppen (0) - kopplar höger till mitten
+        maze[8][13] = 1;
+        // maze[8][12] är öppen (0) - kopplar höger till mitten
+        
+        maze[12][5] = 1;
+        // maze[11][5] är öppen (0) - kopplar nedre del
+        maze[12][6] = 1;
+        // maze[11][6] är öppen (0) - kopplar nedre del
+        maze[12][10] = 1;
+        // maze[11][10] är öppen (0) - kopplar nedre del
+        maze[12][11] = 1;
+        // maze[11][11] är öppen (0) - kopplar nedre del
+        
+        return maze;
+    }
+    
     createDiamonds() {
         const diamonds = [];
         for (let y = 1; y < this.rows - 1; y++) {
@@ -302,11 +432,20 @@ class DiamondPacman {
             // Uppdatera spöken
             this.updateGhosts();
             
+            // Uppdatera spawners
+            this.updateSpawners();
+            
+            // Uppdatera hunters
+            this.updateHunters();
+            
+            // Kolla om level ska ökas
+            this.checkLevelUp();
+            
             // Kolla kollisioner
             this.checkCollisions();
             
             // Kolla om spelet är vunnet
-            if (this.diamonds.length === 0 && this.ghosts.length === 0) {
+            if (this.diamonds.length === 0 && this.ghosts.length === 0 && this.spawners.length === 0 && this.hunters.length === 0) {
                 this.gameWon = true;
                 this.gameRunning = false;
                 this.showGameOver('Du vann! 🎉');
@@ -317,6 +456,10 @@ class DiamondPacman {
     }
     
     updatePlayer() {
+        // Spara tidigare position
+        this.player.lastX = this.player.x;
+        this.player.lastY = this.player.y;
+        
         // Kolla om nästa riktning är möjlig
         const nextPos = this.getNextPosition(this.player.x, this.player.y, this.player.nextDirection);
         if (this.isValidPosition(nextPos.x, nextPos.y)) {
@@ -350,6 +493,141 @@ class DiamondPacman {
         });
     }
     
+    updateSpawners() {
+        const currentTime = Date.now();
+        // Level 1: 2 minuter, Level 2: 1 minut
+        const spawnInterval = this.level === 1 ? 120000 : 60000;    
+        
+        this.spawners.forEach(spawner => {
+            // Rör sig slumpmässigt
+            const newPos = this.getNextPosition(spawner.x, spawner.y, spawner.direction);
+            
+            if (!this.isValidPosition(newPos.x, newPos.y)) {
+                // Välj ny slumpmässig riktning
+                const directions = ['up', 'down', 'left', 'right'];
+                spawner.direction = directions[Math.floor(Math.random() * directions.length)];
+            } else {
+                // Flytta spawner
+                spawner.x = newPos.x;
+                spawner.y = newPos.y;
+            }
+            
+            // Kolla om det är dags att skapa en fireball
+            if (currentTime - spawner.lastSpawnTime >= spawnInterval) {
+                this.spawnFireball(spawner.x, spawner.y);
+                spawner.lastSpawnTime = currentTime;
+            }
+        });
+    }
+    
+    spawnFireball(x, y) {
+        // Skapa en ny fireball (ghost) vid spawner-positionen
+        const directions = ['up', 'down', 'left', 'right'];
+        const colors = ['#FF0000', '#FF69B4', '#00FFFF', '#FFA500', '#FF1493'];
+        const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        this.ghosts.push({
+            x: x,
+            y: y,
+            direction: randomDirection,
+            color: randomColor
+        });
+    }
+    
+    checkLevelUp() {
+        if (this.level === 1 && this.score >= 1500) {
+            this.level = 2;
+            document.getElementById('level').textContent = this.level;
+            this.loadLevel(2);
+        }
+    }
+    
+    loadLevel(level) {
+        // Återställ spelare position
+        this.player.x = 1;
+        this.player.y = 1;
+        this.player.lastX = 1;
+        this.player.lastY = 1;
+        this.player.direction = 'right';
+        this.player.nextDirection = 'right';
+        
+        // Rensa projektiler
+        this.bullets = [];
+        
+        if (level === 1) {
+            // Level 1 setup
+            this.maze = this.createMaze();
+            this.diamonds = this.createDiamonds();
+            this.ghosts = [
+                { x: 9, y: 1, direction: 'left', color: '#FF0000' },
+                { x: 1, y: 9, direction: 'right', color: '#FF69B4' },
+                { x: 9, y: 9, direction: 'up', color: '#00FFFF' }
+            ];
+            this.spawners = [
+                { x: 5, y: 5, direction: 'right', lastSpawnTime: Date.now(), hp: 4 }
+            ];
+            this.hunters = [];
+        } else if (level === 2) {
+            // Level 2 setup
+            this.maze = this.createMazeLevel2();
+            this.diamonds = this.createDiamonds();
+            this.ghosts = [
+                { x: 10, y: 2, direction: 'left', color: '#FF0000' },
+                { x: 2, y: 10, direction: 'right', color: '#FF69B4' },
+                { x: 10, y: 10, direction: 'up', color: '#00FFFF' }
+            ];
+            this.spawners = [
+                { x: 7, y: 7, direction: 'right', lastSpawnTime: Date.now(), hp: 4 }
+            ];
+            this.hunters = [
+                { x: 5, y: 5, direction: 'down', speed: 1 }
+            ];
+        }
+    }
+    
+    updateHunters() {
+        this.hunters.forEach(hunter => {
+            // Hunter jagar spelaren - rör sig mot spelaren
+            const dx = this.player.x - hunter.x;
+            const dy = this.player.y - hunter.y;
+            
+            // Välj riktning baserat på vilken axel som är längst bort
+            let newDirection = hunter.direction;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // Rör sig horisontellt
+                newDirection = dx > 0 ? 'right' : 'left';
+            } else {
+                // Rör sig vertikalt
+                newDirection = dy > 0 ? 'down' : 'up';
+            }
+            
+            // Försök röra sig i den nya riktningen
+            const newPos = this.getNextPosition(hunter.x, hunter.y, newDirection);
+            if (this.isValidPosition(newPos.x, newPos.y)) {
+                hunter.x = newPos.x;
+                hunter.y = newPos.y;
+                hunter.direction = newDirection;
+            } else {
+                // Om den nya riktningen inte fungerar, försök den andra axeln
+                const altDirection = Math.abs(dx) > Math.abs(dy) 
+                    ? (dy > 0 ? 'down' : 'up')
+                    : (dx > 0 ? 'right' : 'left');
+                const altPos = this.getNextPosition(hunter.x, hunter.y, altDirection);
+                if (this.isValidPosition(altPos.x, altPos.y)) {
+                    hunter.x = altPos.x;
+                    hunter.y = altPos.y;
+                    hunter.direction = altDirection;
+                } else {
+                    // Om ingen riktning fungerar, välj slumpmässig
+                    const directions = ['up', 'down', 'left', 'right'];
+                    hunter.direction = directions[Math.floor(Math.random() * directions.length)];
+                }
+            }
+        });
+    }
+    
     getNextPosition(x, y, direction) {
         switch(direction) {
             case 'up': return { x, y: y - 1 };
@@ -365,8 +643,34 @@ class DiamondPacman {
     }
     
     shoot() {
-        // Skapa en ny projektil i spelarens riktning (använd nextDirection om den finns, annars direction)
-        const shootDirection = this.player.nextDirection || this.player.direction;
+        // Kolla om spelaren står still (samma position som förra gången)
+        const isStandingStill = this.player.x === this.player.lastX && this.player.y === this.player.lastY;
+        
+        let shootDirection;
+        
+        if (isStandingStill && this.player.nextDirection) {
+            // Om spelaren står still och försöker gå mot en vägg, skjut i motsatt riktning
+            const nextPos = this.getNextPosition(this.player.x, this.player.y, this.player.nextDirection);
+            const isBlocked = !this.isValidPosition(nextPos.x, nextPos.y);
+            
+            if (isBlocked) {
+                // Spelaren står emot en vägg, skjut i motsatt riktning
+                switch(this.player.nextDirection) {
+                    case 'up': shootDirection = 'down'; break;
+                    case 'down': shootDirection = 'up'; break;
+                    case 'left': shootDirection = 'right'; break;
+                    case 'right': shootDirection = 'left'; break;
+                    default: shootDirection = this.player.direction;
+                }
+            } else {
+                // Spelaren står still men vägen är öppen, använd nextDirection
+                shootDirection = this.player.nextDirection;
+            }
+        } else {
+            // Normal skjutning - använd nextDirection om den finns, annars direction
+            shootDirection = this.player.nextDirection || this.player.direction;
+        }
+        
         this.bullets.push({
             x: this.player.x,
             y: this.player.y,
@@ -403,6 +707,45 @@ class DiamondPacman {
                 // Ge poäng för att döda spöke
                 this.score += 50;
                 document.getElementById('score').textContent = this.score;
+                this.checkLevelUp();
+            }
+            
+            // Kolla om projektilen träffar en spawner
+            const spawnerIndex = this.spawners.findIndex(spawner => 
+                spawner.x === bullet.x && spawner.y === bullet.y
+            );
+            
+            if (spawnerIndex !== -1) {
+                const spawner = this.spawners[spawnerIndex];
+                // Ta bort projektilen
+                this.bullets.splice(i, 1);
+                // Minska spawner HP
+                spawner.hp -= 1;
+                
+                // Om spawnern är död
+                if (spawner.hp <= 0) {
+                    // Ta bort spawnern
+                    this.spawners.splice(spawnerIndex, 1);
+                    // Ge poäng för att döda spawner
+                    this.score += 50;
+                    document.getElementById('score').textContent = this.score;
+                    this.checkLevelUp();
+                }
+            }
+            
+            // Kolla om projektilen träffar en hunter
+            const hunterIndex = this.hunters.findIndex(hunter => 
+                hunter.x === bullet.x && hunter.y === bullet.y
+            );
+            
+            if (hunterIndex !== -1) {
+                // Ta bort huntern och projektilen
+                this.hunters.splice(hunterIndex, 1);
+                this.bullets.splice(i, 1);
+                // Ge poäng för att döda hunter
+                this.score += 150;
+                document.getElementById('score').textContent = this.score;
+                this.checkLevelUp();
             }
         }
     }
@@ -413,6 +756,7 @@ class DiamondPacman {
             this.diamonds.splice(diamondIndex, 1);
             this.score += 10;
             document.getElementById('score').textContent = this.score;
+            this.checkLevelUp();
         }
     }
     
@@ -420,6 +764,22 @@ class DiamondPacman {
         // Kolla kollision med spöken (bara om spelaren inte är i samma position som en projektil just sköt)
         for (const ghost of this.ghosts) {
             if (ghost.x === this.player.x && ghost.y === this.player.y) {
+                this.loseLife();
+                break;
+            }
+        }
+        
+        // Kolla kollision med spawners
+        for (const spawner of this.spawners) {
+            if (spawner.x === this.player.x && spawner.y === this.player.y) {
+                this.loseLife();
+                break;
+            }
+        }
+        
+        // Kolla kollision med hunters
+        for (const hunter of this.hunters) {
+            if (hunter.x === this.player.x && hunter.y === this.player.y) {
                 this.loseLife();
                 break;
             }
@@ -438,6 +798,8 @@ class DiamondPacman {
             // Återställ spelare position
             this.player.x = 1;
             this.player.y = 1;
+            this.player.lastX = 1;
+            this.player.lastY = 1;
         }
     }
     
@@ -453,36 +815,24 @@ class DiamondPacman {
     restartGame() {
         this.score = 0;
         this.lives = 3;
+        this.level = 1;
         this.gameRunning = true;
         this.gamePaused = false;
         this.gameWon = false;
         this.gameOver = false;
         
-        this.player.x = 1;
-        this.player.y = 1;
-        this.player.direction = 'right';
-        this.player.nextDirection = 'right';
-        
-        // Återställ spöken
-        this.ghosts = [
-            { x: 9, y: 1, direction: 'left', color: '#FF0000' },
-            { x: 1, y: 9, direction: 'right', color: '#FF69B4' },
-            { x: 9, y: 9, direction: 'up', color: '#00FFFF' }
-        ];
-        
-        // Rensa projektiler
-        this.bullets = [];
-        
-        this.diamonds = this.createDiamonds();
+        // Ladda level 1
+        this.loadLevel(1);
         
         document.getElementById('score').textContent = this.score;
         document.getElementById('lives').textContent = this.lives;
+        document.getElementById('level').textContent = this.level;
         document.getElementById('pauseBtn').textContent = 'Pausa';
     }
     
     draw() {
-        // Rensa canvas
-        this.ctx.fillStyle = '#000';
+        // Rensa canvas med blå bakgrund
+        this.ctx.fillStyle = '#1E3A8A'; // Mörkblå bakgrund
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Rita labyrint
@@ -497,16 +847,65 @@ class DiamondPacman {
         // Rita spöken
         this.drawGhosts();
         
+        // Rita spawners
+        this.drawSpawners();
+        
+        // Rita hunters
+        this.drawHunters();
+        
         // Rita spelare
         this.drawPlayer();
     }
     
     drawMaze() {
-        this.ctx.fillStyle = '#0000FF';
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
                 if (this.maze[y][x] === 1) {
-                    this.ctx.fillRect(x * this.gridSize, y * this.gridSize, this.gridSize, this.gridSize);
+                    const wallX = x * this.gridSize;
+                    const wallY = y * this.gridSize;
+                    
+                    // Spara canvas-tillstånd
+                    this.ctx.save();
+                    
+                    // Skapa gradient för sten/berg-effekt
+                    const gradient = this.ctx.createLinearGradient(
+                        wallX, wallY,
+                        wallX + this.gridSize, wallY + this.gridSize
+                    );
+                    
+                    // Gråa färger för sten/berg
+                    gradient.addColorStop(0, '#6B7280'); // Ljusare grå
+                    gradient.addColorStop(0.3, '#4B5563'); // Mörkare grå
+                    gradient.addColorStop(0.7, '#374151'); // Ännu mörkare
+                    gradient.addColorStop(1, '#1F2937'); // Mörkast
+                    
+                    // Rita väggen med gradient
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.fillRect(wallX, wallY, this.gridSize, this.gridSize);
+                    
+                    // Lägg till skugga för djup
+                    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    this.ctx.shadowBlur = 5;
+                    this.ctx.shadowOffsetX = 2;
+                    this.ctx.shadowOffsetY = 2;
+                    
+                    // Rita en ljusare kant för 3D-effekt
+                    this.ctx.strokeStyle = '#9CA3AF';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.strokeRect(wallX + 1, wallY + 1, this.gridSize - 2, this.gridSize - 2);
+                    
+                    // Lägg till textur med små rektanglar för sten-effekt
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    for (let i = 0; i < 3; i++) {
+                        for (let j = 0; j < 3; j++) {
+                            const offsetX = wallX + (i * this.gridSize / 3) + 2;
+                            const offsetY = wallY + (j * this.gridSize / 3) + 2;
+                            this.ctx.fillRect(offsetX, offsetY, this.gridSize / 4, this.gridSize / 4);
+                        }
+                    }
+                    
+                    // Återställ canvas-tillstånd
+                    this.ctx.restore();
                 }
             }
         }
@@ -639,12 +1038,106 @@ class DiamondPacman {
             this.ctx.shadowOffsetX = 0;
             this.ctx.shadowOffsetY = 0;
             
-            // Rita eld-emoji
-            this.ctx.font = '36px Arial';
+            // Rita eld-emoji (större)
+            this.ctx.font = '48px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = '#FF4500';
             this.ctx.fillText('🔥', x, y);
+            
+            // Återställ canvas-tillstånd
+            this.ctx.restore();
+        });
+    }
+    
+    drawSpawners() {
+        this.spawners.forEach(spawner => {
+            const x = spawner.x * this.gridSize + this.gridSize / 2;
+            const y = spawner.y * this.gridSize + this.gridSize / 2;
+            
+            // Spara canvas-tillstånd
+            this.ctx.save();
+            
+            if (this.spawnerImage) {
+                // Rita spawner-bild (större)
+                const size = this.gridSize * 1.2;
+                
+                // Glödande lila effekt för spawner
+                this.ctx.shadowColor = '#9D00FF';
+                this.ctx.shadowBlur = 25;
+                this.ctx.shadowOffsetX = 0;
+                this.ctx.shadowOffsetY = 0;
+                
+                // Rita bilden
+                this.ctx.drawImage(
+                    this.spawnerImage,
+                    x - size/2,
+                    y - size/2,
+                    size,
+                    size
+                );
+            } else {
+                // Fallback om bilden inte laddats
+                // Glödande lila/lila effekt för spawner
+                this.ctx.shadowColor = '#9D00FF';
+                this.ctx.shadowBlur = 25;
+                this.ctx.shadowOffsetX = 0;
+                this.ctx.shadowOffsetY = 0;
+                
+                // Rita spawner som en lila cirkel med symbol (större)
+                this.ctx.fillStyle = '#9D00FF';
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, this.gridSize / 2 * 1.2, 0, 2 * Math.PI);
+                this.ctx.fill();
+                
+                // Rita symbol (⚡ eller ⚙️)
+                this.ctx.font = '36px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.fillText('⚙️', x, y);
+            }
+            
+            // Rita HP-indikator
+            this.ctx.shadowBlur = 0;
+            this.ctx.font = '12px Arial';
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.strokeStyle = '#000000';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeText(`HP: ${spawner.hp}`, x, y + this.gridSize / 2 + 10);
+            this.ctx.fillText(`HP: ${spawner.hp}`, x, y + this.gridSize / 2 + 10);
+            
+            // Återställ canvas-tillstånd
+            this.ctx.restore();
+        });
+    }
+    
+    drawHunters() {
+        this.hunters.forEach(hunter => {
+            const x = hunter.x * this.gridSize + this.gridSize / 2;
+            const y = hunter.y * this.gridSize + this.gridSize / 2;
+            
+            // Spara canvas-tillstånd
+            this.ctx.save();
+            
+            // Glödande röd/orange effekt för hunter
+            this.ctx.shadowColor = '#FF4500';
+            this.ctx.shadowBlur = 30;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+            
+            // Rita hunter som en röd/orange cirkel (större)
+            this.ctx.fillStyle = '#FF4500';
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, this.gridSize / 2 * 1.2, 0, 2 * Math.PI);
+            this.ctx.fill();
+            
+            // Rita symbol (👁️ eller 🎯)
+            this.ctx.font = '36px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.fillText('👁️', x, y);
             
             // Återställ canvas-tillstånd
             this.ctx.restore();
@@ -660,8 +1153,8 @@ class DiamondPacman {
         const characterImage = this.characterImages[selectedCharacter];
         
         if (characterImage) {
-            // Rita transparent bild med glöd-effekt
-            const size = this.gridSize; // Lämna lite marginal
+            // Rita transparent bild med glöd-effekt (större)
+            const size = this.gridSize * 1.2; // 20% större
             
             // Spara canvas-tillstånd
             this.ctx.save();
@@ -692,15 +1185,18 @@ class DiamondPacman {
                          selectedCharacter === 'hollow' ? '💀' :
                          selectedCharacter === 'krabban' ? '🦀' :
                          selectedCharacter === 'tjuven' ? '🥷' :
-                         selectedCharacter === 'anden' ? '🦆' : '🎂';
+                         selectedCharacter === 'anden' ? '🦆' :
+                         selectedCharacter === 'red_monster' ? '👹' :
+                         selectedCharacter === 'banana' ? '🍌' :
+                         selectedCharacter === 'cowboy-gamer' ? '🤠' : '🎂';
             
             // Spara canvas-tillstånd
             this.ctx.save();
             
-            // Skapa rund guldfärgad bakgrund
+            // Skapa rund guldfärgad bakgrund (större)
             this.ctx.fillStyle = '#FFD700';
             this.ctx.beginPath();
-            this.ctx.arc(x, y, this.gridSize/2 - 4, 0, 2 * Math.PI);
+            this.ctx.arc(x, y, this.gridSize/2 * 1.2, 0, 2 * Math.PI);
             this.ctx.fill();
             
             // Glöd-effekt
@@ -709,8 +1205,8 @@ class DiamondPacman {
             this.ctx.shadowOffsetX = 0;
             this.ctx.shadowOffsetY = 0;
             
-            // Rita emoji
-            this.ctx.font = '40px Arial';
+            // Rita emoji (större)
+            this.ctx.font = '48px Arial';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = '#000';

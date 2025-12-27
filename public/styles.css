@@ -78,7 +78,11 @@ h2 {
     display: block;
     object-position: center;
 }
-.transparent-border {border: 2px solid black;}
+.image-frame {
+    border: 2px solid black;
+    background: rgba(230, 223, 223, 0.1);
+   ;
+}
 
 .character-card h3 {
     font-size: 1.2rem;
